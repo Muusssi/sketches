@@ -6,7 +6,6 @@ float projectileSpeed = 7;
 void shoot() {
   
   if (frameCount > previousShot) {
-    println("wtf");
     if (score>0 && (mouseX != pmouseX || mouseY != pmouseY)) {
       new Projectile(mouseX, mouseY, pmouseX, pmouseY);
       previousShot = frameCount;
@@ -33,7 +32,6 @@ class Projectile {
   float x, y, xSpeed, ySpeed;
   
   Projectile(float x, float y, float xDirection, float yDirection) {
-    println("new projectile");
     this.x = x;
     this.y = y;
     float normalizer = dist(x, y, xDirection, yDirection);
@@ -46,7 +44,6 @@ class Projectile {
   }
   
   boolean iterate() {
-    println("iterate");
     x += xSpeed;
     y += ySpeed;
     if (x > width || x < 0 || y > height || y < 0) {
