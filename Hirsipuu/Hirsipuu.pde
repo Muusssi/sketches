@@ -114,7 +114,12 @@ void piirra_hirsipuu(int vaihe) {
   }
   if (vaihe > 9) {
     // kuoli
-    line(200,200, 200, 250);
+    ellipse(200, 250+5, 30, 30);// pää
+    line(200, 265+5, 200, 300+5);// vartalo
+    line(200, 300+5, 220, 350+5);// vasen jalka
+    line(200, 300+5, 180, 350+5);// oikea jalka
+    line(200, 265+5, 220, 300+5);// vasen käsi
+    line(200, 265+5, 180, 300+5);// oikea käsi
   }
   
 }
