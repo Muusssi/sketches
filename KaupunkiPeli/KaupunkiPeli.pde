@@ -1,15 +1,27 @@
-int tila = 0;
+int valittu_rakennus_tyyppi = 0;
+
 boolean w_painettu = false;
 boolean a_painettu = false;
 boolean s_painettu = false;
 boolean d_painettu = false;
 boolean q_painettu = false;
 boolean e_painettu = false;
+final int kompassin_sade = 15;
+final int kompassi_x = 50;
+final int kompassi_y = 50;
+
+
+PVector kursori = new PVector();
+
+// Tilat
+final int NORMAALI = 0;
+final int RAKENNUS = 1;
+int tila = NORMAALI;
 
 void setup() {
     size(1000, 800, P2D);
-    rakenna(20,10,1);
-    rakenna(30,100,1);
+    //rakenna(20,10,1);
+    //rakenna(30,100,1);
 }
 
 void draw() {
@@ -18,40 +30,40 @@ void draw() {
     pushMatrix();
     
     ohjaa_kameraa();
+    ratkaise_kursori();
     piirra_pohja();
     pirra_rakennukset();
 
-    if (tila == 1) {
-        //piirra_ruudukko();
-        kursori();
-    }
     popMatrix();
+    if (tila == RAKENNUS) {
+        //piirra_ruudukko();
+        juuri_katalogi.piirra();
+    }
+    
     kompassi();
 }
 
 
-// translate(width/2,height/2);
-//     rotate(kierto);
-//     scale(skaalaus, skaalaus);
-//     translate(-width/2,-height/2);
-//     translate(kameran_x_siirto, kameran_y_siirto);
-
-void kursori() {
-    PVector kursori = new PVector(mouseX, mouseY);
+void ratkaise_kursori() {
+    kursori = new PVector(mouseX, mouseY);
     kursori.add(new PVector(-kameran_x_siirto, -kameran_y_siirto));
-    kursori.add(new PVector(width/2, height/2));
-    kursori.div(skaalaus);
-    kursori.rotate(-kierto);
     kursori.add(new PVector(-width/2, -height/2));
-    println(kursori.div(ruutu));
-    //ellipse(kursori.x/ruutu, kursori.y, 10, 10);
+    kursori.rotate(-kierto);
+    kursori.div(skaalaus);
+    kursori.add((new PVector(width/2, height/2)));
 }
 
 
 void keyPressed() {
     // Rakennus tila
     if (key == 'r') {
-        tila = 1;
+        if (tila == RAKENNUS) {
+            tila = NORMAALI;
+        }
+        else {
+            tila = RAKENNUS;
+        }
+        
     }
     
     // Ohjaus
@@ -99,8 +111,16 @@ void keyReleased() {
 }
 
 void mouseClicked() {
-    if (dist(mouseX,mouseY,50,50)<15) {
+    if (kompassia_klikattu()) {
         kierto = 0;
+    }
+    else if (tila == RAKENNUS) {
+        if (juuri_katalogi.klikkaus()) {
+            valittu_rakennus_tyyppi = juuri_katalogi.aktiivinen_painike.rakennus_tyyppi;
+        }
+        else {
+            rakenna(int(kursori.x/ruutu), int(kursori.y/ruutu), valittu_rakennus_tyyppi);
+        }
     }
 }
 
@@ -114,11 +134,20 @@ void mouseWheel(MouseEvent event) {
   }
 }
 
+boolean kompassia_klikattu() {
+    if (dist(mouseX,mouseY,kompassi_x,kompassi_y)<kompassin_sade) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 void kompassi() {
-    translate(50,50);
+    translate(kompassi_x,kompassi_y);
     rotate(kierto);
     fill(250);
     stroke(250,100,100);
-    ellipse(0, 0, 30, 30);
-    line(0, 0, 0, -15);
+    ellipse(0, 0, 2*kompassin_sade, 2*kompassin_sade);
+    line(0, 0, 0, -kompassin_sade);
 }
