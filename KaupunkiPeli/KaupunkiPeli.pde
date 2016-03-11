@@ -14,32 +14,32 @@ final int kompassi_y = 50;
 PVector kursori = new PVector();
 
 // Tilat
-final int NORMAALI = 0;
-final int RAKENNUS = 1;
-int tila = NORMAALI;
+final int NORMAALI_TILA = 0;
+final int RAKENNUS_TILA = 1;
+int tila = NORMAALI_TILA;
 
 void setup() {
-    size(1000, 800, P2D);
-    //rakenna(20,10,1);
-    //rakenna(30,100,1);
+    fullScreen(P2D);
+    //size(1000, 800, P2D);
+    alusta_kartta();
+    paivita_kartta();
 }
 
 void draw() {
     strokeWeight(2);
     background(200);
     pushMatrix();
-    
     ohjaa_kameraa();
     ratkaise_kursori();
-    piirra_pohja();
-    pirra_rakennukset();
+    piirra_kartta();
 
     popMatrix();
-    if (tila == RAKENNUS) {
+
+    if (tila == RAKENNUS_TILA) {
         //piirra_ruudukko();
         juuri_katalogi.piirra();
     }
-    
+
     kompassi();
 }
 
@@ -57,15 +57,15 @@ void ratkaise_kursori() {
 void keyPressed() {
     // Rakennus tila
     if (key == 'r') {
-        if (tila == RAKENNUS) {
-            tila = NORMAALI;
+        if (tila == RAKENNUS_TILA) {
+            tila = NORMAALI_TILA;
         }
         else {
-            tila = RAKENNUS;
+            tila = RAKENNUS_TILA;
         }
-        
+
     }
-    
+
     // Ohjaus
     else if (key == 'w') {
         w_painettu = true;
@@ -114,7 +114,7 @@ void mouseClicked() {
     if (kompassia_klikattu()) {
         kierto = 0;
     }
-    else if (tila == RAKENNUS) {
+    else if (tila == RAKENNUS_TILA) {
         if (juuri_katalogi.klikkaus()) {
             valittu_rakennus_tyyppi = juuri_katalogi.aktiivinen_painike.rakennus_tyyppi;
         }
@@ -144,6 +144,7 @@ boolean kompassia_klikattu() {
 }
 
 void kompassi() {
+
     translate(kompassi_x,kompassi_y);
     rotate(kierto);
     fill(250);

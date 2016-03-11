@@ -14,6 +14,10 @@ final int painike_leveys = 70;
 final int painike_rako = 10;
 RakennusKatalogi juuri_katalogi = alusta_katalogi();
 
+// Kuva tasot
+PGraphics pohja_kartta;
+PGraphics ruudukko_kartta;
+PGraphics rakennus_kartta;
 
 public class KatalogiPainike {
     boolean aktiivinen = false;
@@ -135,24 +139,64 @@ public class Rakennus {
 
     void piirra() {
         fill(vari);
-        rect(x*ruutu, y*ruutu, leveys*ruutu, pituus*ruutu);
+        rakennus_kartta.rect(x*ruutu, y*ruutu, leveys*ruutu, pituus*ruutu);
     }
 }
 
-public void pirra_rakennukset() {
+public void alusta_kartta() {
+    pohja_kartta = createGraphics(kaupungin_halkaisija*ruutu, kaupungin_halkaisija*ruutu);
+    pohja_kartta.beginDraw();
+    pohja_kartta.fill(50,200,50);
+    pohja_kartta.stroke(250);
+    pohja_kartta.rect(0, 0, kaupungin_halkaisija*ruutu, kaupungin_halkaisija*ruutu);
+    pohja_kartta.endDraw();
+
+    ruudukko_kartta = createGraphics(kaupungin_halkaisija*ruutu, kaupungin_halkaisija*ruutu);
+    ruudukko_kartta.beginDraw();
+    piirra_ruudukko();
+    ruudukko_kartta.endDraw();
+
+    rakennus_kartta = createGraphics(kaupungin_halkaisija*ruutu, kaupungin_halkaisija*ruutu);
+    println("Kartta alustettu");
+}
+
+private void piirra_ruudukko() {
+    for (int i=0; i<kaupungin_halkaisija; i++) {
+        for (int j=0; j<kaupungin_halkaisija; j++) {
+            ruudukko_kartta.stroke(100, 100, 100);
+            ruudukko_kartta.line(0, j*ruutu, kaupungin_halkaisija*ruutu, j*ruutu);
+            ruudukko_kartta.line(i*ruutu, 0, i*ruutu, kaupungin_halkaisija*ruutu);
+        }
+    }
+}
+
+public void paivita_kartta() {
+    rakennus_kartta.beginDraw();
     for (int i=0; i<rakennukset.size(); i++) {
         rakennukset.get(i).piirra();
     }
+    rakennus_kartta.endDraw();
 }
 
 
-// public class RakennusMalli {
+public void piirra_kartta() {
 
-//     public RakennusMalli (int leveys, int korkeus, int hinta) {
-        
-//     }
+    image(pohja_kartta, 0, 0);
+    if (tila==RAKENNUS_TILA) {
+        image(ruudukko_kartta, 0, 0);
+    }
+    image(rakennus_kartta, 0, 0);
 
-// }
+}
+
+
+public class RakennusMalli {
+
+    public RakennusMalli (int leveys, int korkeus, int hinta) {
+
+    }
+
+}
 
 
 public void rakenna(int x, int y, int tyyppi) {
@@ -166,34 +210,11 @@ public void rakenna(int x, int y, int tyyppi) {
     else if (tyyppi == 2) {
         new Rakennus(x, y, 6, 5);
     }
+    paivita_kartta();
 }
 
-public void piirra_ruudukko() {
-    for (int i=0; i<kaupungin_halkaisija; i++) {
-        for (int j=0; j<kaupungin_halkaisija; j++) {
-            //stroke(100, 100, 100);
-            line(0, j*ruutu, kaupungin_halkaisija*ruutu, j*ruutu);
-            line(i*ruutu, 0, i*ruutu, kaupungin_halkaisija*ruutu);
-        }   
-    }
-}
-
-public void piirra_pohja() {
-    fill(100,255,100);
-    stroke(250);
-    rect(0, 0, kaupungin_halkaisija*ruutu, kaupungin_halkaisija*ruutu);
-}
-
-void alusta_kamera() {
-    pushMatrix();
-    scale(1,1);
-    kamera_alustettu = true;
-}
 
 void ohjaa_kameraa() {
-    if (!kamera_alustettu) {
-        alusta_kamera();
-    }
     if (w_painettu) {
         kameran_y_siirto = constrain(kameran_y_siirto+ruutu*1.5,-kaupungin_halkaisija*ruutu,
             kaupungin_halkaisija*ruutu);
@@ -219,7 +240,7 @@ void ohjaa_kameraa() {
     rotate(kierto);
     scale(skaalaus, skaalaus);
     translate(-width/2,-height/2);
-    
+
 }
 
 
