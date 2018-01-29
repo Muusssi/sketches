@@ -7,12 +7,13 @@ ArrayList<float[]> pointList = new ArrayList<float[]>();
 float[] point;
 
 void setup() {
-  size(400,400);
+  fullScreen();
+  //size(400,400);
   textSize(50);
 }
 
 void draw() {
-  
+
 }
 
 void mouseDragged() {
@@ -24,52 +25,54 @@ void mouseDragged() {
 }
 
 void keyPressed() {
-  float[][] array = normalize(choosePoints(pointList));
-  drawPointList(array);
-  if (keyCode >= 65 && keyCode <= 90) {
-    chars.append(getFromKey(keyCode));
-    charPointList.add(array);
-  }
-  else if (keyCode == 91) {
-    chars.append("Å");
-    charPointList.add(array);
-  }
-  else if (keyCode == 222) {
-    chars.append("Ä");
-    charPointList.add(array);
-  }
-  else if (keyCode == 59) {
-    chars.append("Ö");
-    charPointList.add(array);
-  }
-  else if (keyCode >= 48 && keyCode<=57) {
-    chars.append(str(keyCode-48));
-    charPointList.add(array);
-  }
-  else if (keyCode == 32) {
-    int bestGuess = -1;
-    float minDTW = 1000000;
-    float dtw;
-    for (int i=0; i<charPointList.size(); i++) {
-      dtw = DTWdistance(array, charPointList.get(i));
-      if (dtw < minDTW) {
-        bestGuess = i;
-        minDTW = dtw;
+  if (pointList.size() > 0) {
+    float[][] array = normalize(choosePoints(pointList));
+    drawPointList(array);
+    if (keyCode >= 65 && keyCode <= 90) {
+      chars.append(getFromKey(keyCode));
+      charPointList.add(array);
+    }
+    else if (keyCode == 91) {
+      chars.append("Å");
+      charPointList.add(array);
+    }
+    else if (keyCode == 222) {
+      chars.append("Ä");
+      charPointList.add(array);
+    }
+    else if (keyCode == 59) {
+      chars.append("Ö");
+      charPointList.add(array);
+    }
+    else if (keyCode >= 48 && keyCode<=57) {
+      chars.append(str(keyCode-48));
+      charPointList.add(array);
+    }
+    else if (keyCode == 32) {
+      int bestGuess = -1;
+      float minDTW = 1000000;
+      float dtw;
+      for (int i=0; i<charPointList.size(); i++) {
+        dtw = DTWdistance(array, charPointList.get(i));
+        if (dtw < minDTW) {
+          bestGuess = i;
+          minDTW = dtw;
+        }
+      }
+
+      if (bestGuess >= 0) {
+        fill(0);
+        text(chars.get(bestGuess),55,55);
+        fill(255);
+        print(chars.get(bestGuess)+": ");
+        println(minDTW);
       }
     }
-    
-    if (bestGuess >= 0) {
-      fill(0);
-      text(chars.get(bestGuess),55,55);
-      fill(255);
-      print(chars.get(bestGuess)+": ");
-      println(minDTW);
+    else {
+      println("Not added char");
     }
+    pointList = new ArrayList<float[]>();
   }
-  else {
-    println("Not added char");
-  }
-  pointList = new ArrayList<float[]>();
 }
 
 void drawPointList(float[][] pointArray) {
