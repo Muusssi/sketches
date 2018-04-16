@@ -1,11 +1,18 @@
-String sana = "ohjelmointikerholainen";
+String sana;
 String arvattu = "";
 String arvatut_kirjaimet = "";
 int sallitut_arvaukset = 10;
+StringList sanat;
 
 void setup() {
   size(800,400);
   textSize(30);
+  sanat = new StringList();
+  sanat.append("ohjelmointikerholainen");
+  sanat.append("villetekitan");
+  sanat.append("pelaavainomiapelejä");
+  sanat.append("haccingallowedtrue");
+  sana = sanat.get(int(random(4)));
   for (int i=0; i<sana.length(); i++) {
     if (sana.charAt(i) == ' ') {
       arvattu += ' ';
