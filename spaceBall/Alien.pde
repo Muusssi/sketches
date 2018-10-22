@@ -20,8 +20,8 @@ void iterateAliens() {
 void gameOver() {
   fill(200,0,0);
   text(score, 30, 30);
-  textSize(50); 
-  text("Game Over!", width/2, height/2); 
+  textSize(50);
+  text("Game Over!", width/2, height/2);
   noLoop();
 }
 
@@ -43,7 +43,7 @@ class Alien {
   float ySpeed = 3;
   float size = 50;
   int health = 3;
-  
+
   Alien() {
     float side = random(4);
     if (side < 1) {
@@ -64,7 +64,7 @@ class Alien {
     }
     aliens.add(this);
   }
-  
+
   boolean iterate() {
     if (health < 1) {
       return true;
@@ -85,12 +85,37 @@ class Alien {
     else if (y > height-alienSideBounce) {
       ySpeed -= 1;
     }
-    fill(50,map(health, 0, 3, 50, 250),50);
-    ellipse(x, y, 50, 50);
-    if (dist(mouseX, mouseY, x, y) < size/2+15) {
+    this.draw();
+    if (touches_player()) {
       gameOver();
     }
     return false;
+  }
+
+  void draw() {
+    pushStyle();
+    fill(50,map(health, 0, 3, 50, 250),50);
+    ellipse(x, y, size, size);
+    popStyle();
+  }
+
+  boolean touches_player() {
+    return dist(player_x, player_y, x, y) < (size/2 + player_size/2);
+  }
+
+}
+
+public class RectAlien extends Alien {
+
+  public RectAlien () {
+    super();
+    this.health = 10;
+  }
+
+  void draw() {
+    pushStyle();
+    fill(map(health, 0, 3, 50, 250),50,50);
+    rect(x - size/2, y - size/2, size, size);
   }
 
 }

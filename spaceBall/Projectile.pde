@@ -4,14 +4,7 @@ int previousShot = 0;
 float projectileSpeed = 7;
 
 void shoot() {
-  
-  if (frameCount > previousShot) {
-    if (score>0 && (mouseX != pmouseX || mouseY != pmouseY)) {
-      new Projectile(mouseX, mouseY, pmouseX, pmouseY);
-      previousShot = frameCount;
-      score--;
-    }
-  }
+  new Projectile(player_x, player_y, mouseX, mouseY);
 }
 
 void iterateProjectiles() {
@@ -30,19 +23,16 @@ void iterateProjectiles() {
 
 class Projectile {
   float x, y, xSpeed, ySpeed;
-  
+
   Projectile(float x, float y, float xDirection, float yDirection) {
     this.x = x;
     this.y = y;
     float normalizer = dist(x, y, xDirection, yDirection);
-    this.xSpeed = projectileSpeed*(x-xDirection)/normalizer;
-    this.ySpeed = projectileSpeed*(y-yDirection)/normalizer;
+    this.xSpeed = projectileSpeed*(xDirection - x)/normalizer;
+    this.ySpeed = projectileSpeed*(yDirection - y)/normalizer;
     projectiles.add(this);
   }
-  
-  void remove() {
-  }
-  
+
   boolean iterate() {
     x += xSpeed;
     y += ySpeed;
