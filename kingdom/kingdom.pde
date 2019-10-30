@@ -1,5 +1,6 @@
 import java.util.LinkedList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public static final float SLIDE_SPEED = 7;
 public static final float ZOOMIMG_SPEED = 0.03;
@@ -10,9 +11,9 @@ public static final float MAX_ZOOM = 3;
 public static final float MIN_ZOOM = 0.3;
 
 
-public static final int WORLD_WIDTH = 150;
-public static final int WORLD_HEIGHT = 150;
-public static final int TILE_SIZE = 20;
+public static final int WORLD_WIDTH = 300;
+public static final int WORLD_HEIGHT = 300;
+public static final int TILE_SIZE = 10;
 
 
 
@@ -25,17 +26,22 @@ Unit active_unit = null;
 LinkedList<Unit> units = new LinkedList<Unit>();
 
 void setup() {
-  size(800, 600, P2D);
-  //fullScreen(P2D);
+  //size(800, 600, P2D);
+  fullScreen(P2D);
   init_world();
+  //init_map_layer();
+  Unit unit = new Unit();
+  unit.find_reachable_paths();
+  Iterator<Tile> itr = unit.reachable.keySet().iterator();
+  while (itr.hasNext()) {
+    itr.next().highlight = true;
+  }
   init_map_layer();
-  new Unit();
 }
 
 void draw() {
   background(200);
   handle_wasd();
-  ellipse(zoom*x_offset, zoom*y_offset, 30, 30);
   set_world_coordinates();
 
   draw_map();

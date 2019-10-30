@@ -1,24 +1,51 @@
-
+public static final int SEA_BUFFER = 3; // Must be at least 2
+public static final float BASE_LINE_WATER = 0.01;
+public static final float BASE_LINE_MOUNTAIN = 0.01;
+public static final float NEIGHBOUR_EFFECT = 0.35;
 
 
 Tile[][] world_grid = new Tile[WORLD_WIDTH][WORLD_HEIGHT];
 PGraphics map_layer, dominion_layer;
 
 void init_world() {
+  // This function generates the random world
+  float water_likelyhood;
+  float mountain_likelyhood;
   for (int i = 0; i < WORLD_WIDTH; ++i) {
     for (int j = 0; j < WORLD_HEIGHT; ++j) {
-      float rand = random(1);
-      if (rand > 0.25 || (i == 10 && j == 10)) {
-        world_grid[i][j] = new LandTile(i, j);
-      }
-      else if (rand > 0.12) {
+      if (i < SEA_BUFFER || j < SEA_BUFFER) {
         world_grid[i][j] = new WaterTile(i, j);
       }
       else {
-        world_grid[i][j] = new MountainTile(i, j);
+        water_likelyhood = BASE_LINE_WATER;
+        mountain_likelyhood = BASE_LINE_MOUNTAIN;
+        if (world_grid[i - 1][j] instanceof WaterTile) water_likelyhood += NEIGHBOUR_EFFECT;
+        else if (world_grid[i - 1][j] instanceof MountainTile) mountain_likelyhood += NEIGHBOUR_EFFECT;
+        if (world_grid[i][j - 1] instanceof WaterTile) water_likelyhood += NEIGHBOUR_EFFECT;
+        else if (world_grid[i][j - 1] instanceof MountainTile) mountain_likelyhood += NEIGHBOUR_EFFECT;
+        if (world_grid[i - 1][j - 1] instanceof WaterTile) water_likelyhood += NEIGHBOUR_EFFECT/2;
+        else if (world_grid[i - 1][j - 1] instanceof MountainTile) mountain_likelyhood += NEIGHBOUR_EFFECT/2;
+
+        // if (world_grid[i - 2][j] instanceof WaterTile) water_likelyhood += NEIGHBOUR_EFFECT/2;
+        // else if (world_grid[i - 2][j] instanceof MountainTile) mountain_likelyhood += NEIGHBOUR_EFFECT/2;
+        // if (world_grid[i][j - 2] instanceof WaterTile) water_likelyhood += NEIGHBOUR_EFFECT/2;
+        // else if (world_grid[i][j - 2] instanceof MountainTile) mountain_likelyhood += NEIGHBOUR_EFFECT/2;
+
+        float rand = random(1);
+        if (rand < water_likelyhood) {
+          world_grid[i][j] = new WaterTile(i, j);
+        }
+        else if (rand < water_likelyhood + mountain_likelyhood) {
+          world_grid[i][j] = new MountainTile(i, j);
+        }
+        else {
+          world_grid[i][j] = new LandTile(i, j);
+        }
       }
+
     }
   }
+
 }
 
 void init_map_layer() {
@@ -45,6 +72,8 @@ public abstract class Tile {
   float movement_cost = 1;
   boolean units_can_cross = false;
 
+  boolean highlight = false;
+
   Building building = null;
   Unit unit = null;
 
@@ -61,8 +90,10 @@ public abstract class Tile {
   }
 
   void draw() {
-    map_layer.fill(red, green, blue);
+    if (highlight) map_layer.fill(0, 200, 255);
+    else map_layer.fill(red, green, blue);
     map_layer.rect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
   }
 
 }
@@ -122,22 +153,29 @@ void draw_units() {
 }
 
 
-public class PathPoint {
+public class Path {
   Tile tile;
-  PathPoint previous_point;
   float movement_cost;
+  LinkedList<Path> path;
 
-  public PathPoint (Tile tile, float movement_cost, PathPoint previous_point) {
-    // this.destination = destination;
-    // this.movement_cost = movement_cost;
-    // this.previous_point = previous_point;
+
+  public Path (Tile tile, float movement_cost, Path previous_point) {
+    this.tile = tile;
+    this.movement_cost = previous_point.movement_cost + movement_cost;
+    this.path = (LinkedList<Path>) previous_point.path.clone();
+  }
+
+  public Path (Tile tile) {
+    this.tile = tile;
+    this.movement_cost = 0;
+    this.path = new LinkedList<Path>();
   }
 
 }
 
 
-int[] x_directions = {-1, 0, 1, -1, 1, -1, 0, 1};
-int[] y_directions = {-1, -1, -1, 0, 0, 1, 1, 1};
+public static int[] x_directions = { 0, 1, 0, -1,  1, 1, -1, -1};
+public static int[] y_directions = {-1, 0, 1,  0, -1, 1,  1, -1};
 
 public class Unit {
 
@@ -146,12 +184,13 @@ public class Unit {
   Tile tile;
 
   float initial_movement_points = 5;
-  float movement_points = 0;
-  LinkedList<PathPoint> reachable_points = new LinkedList<PathPoint>();
+  float movement_points = 100;
+  HashMap<Tile,Path> reachable = new HashMap<Tile,Path>();
 
   public Unit () {
     units.add(this);
-    world_grid[x][y].unit = this;
+    this.tile = world_grid[x][y];
+    this.tile.unit = this;
   }
 
   void draw() {
@@ -164,29 +203,52 @@ public class Unit {
     ellipse((x+0.5)*TILE_SIZE, (y+0.5)*TILE_SIZE, 2*TILE_SIZE/3, 2*TILE_SIZE/3);
   }
 
-  // void find_reachable_paths() {
+  void find_reachable_paths() {
+    reachable = new HashMap<Tile,Path>();
+    LinkedList<Path> queue = new LinkedList<Path>();
 
-  //   LinkedList<PathPoint> reachable = new LinkedList<PathPoint>();
+    queue.add(new Path(this.tile));
+    int x, y;
+    Tile tile;
+    while (queue.size() > 0) {
+      Path current = queue.removeFirst();
+      x = current.tile.x;
+      y = current.tile.y;
+      for (int i = 0; i < 8; ++i) {
+        int next_x = x - x_directions[i];
+        int next_y = y - y_directions[i];
+        if (are_coordinates_inside(next_x, next_y)) {
+          tile = world_grid[next_x][next_y];
+          float movement_cost = this.movement_cost(current.tile, tile, i >= 4);
+          if (tile.units_can_cross && (movement_points - current.movement_cost - movement_cost >= 0)) {
+            Path new_path = new Path(tile, movement_cost, current);
+            if (reachable.containsKey(tile)) {
+              Path old_path = reachable.get(tile);
+              if (old_path.movement_cost > current.movement_cost + movement_cost) {
+                reachable.put(tile, new_path);
+                queue.remove(old_path);
+                queue.add(new_path);
+              }
+            }
+            else {
+              reachable.put(tile, new_path);
+              queue.add(new_path);
+            }
 
-  //   LinkedList<PathPoint> queue = new LinkedList<PathPoint>();
-  //   queue.add(new PathPoint(this.tile, 0));
-  //   int x, y;
-  //   Tile tile;
-  //   while (queue.size() > 0) {
-  //     PathPoint current = queue.removeFirst();
-  //     x = current.x;
-  //     y = current.y;
-  //     for (int i = 0; i < 8; ++i) {
-  //       int next_x = x - x_directions[i];
-  //       int next_y = y - y_directions[i];
-  //       if (are_coordinates_inside(next_x, next_y)) {
-  //         tile = world_grid[next_x][next_y];
-  //       }
-  //     }
+          }
+        }
+      }
+
+    }
+  }
 
 
-  //   }
-  // }
+  float movement_cost(Tile tile1, Tile tile2, boolean diagonal) {
+    if (diagonal) {
+      return (tile1.movement_cost/2 + tile2.movement_cost/2)*1.414;
+    }
+    return tile1.movement_cost/2 + tile2.movement_cost/2;
+  }
 
 }
 
@@ -199,19 +261,3 @@ boolean are_coordinates_inside(int x, int y) {
   }
   return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
